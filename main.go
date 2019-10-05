@@ -11,17 +11,17 @@ type message map[string]interface{}
 
 func main() {
 	/* Create mesh: */
-	go mesh.Create()
+	m := mesh.New()
 
 	/* Subscribe to a test event: */
-	mesh.Subscribe("test", func(message map[string]interface{}) {
+	m.Subscribe("test", func(message map[string]interface{}) {
 		fmt.Println(message["value"])
 	})
 
 	time.Sleep(1 * time.Second)
 
 	/* Broadcast test event: */
-	mesh.Broadcast("test", message{
+	m.Broadcast("test", message{
 		"value": "hello",
 	})
 
