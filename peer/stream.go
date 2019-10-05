@@ -29,9 +29,13 @@ func (s *Streams) New(networkStream network.Stream) {
 
 	go newStream.writeStream()
 	go newStream.readStream(s.Subscriptions)
+
+	fmt.Println(networkStream.Conn().RemotePeer().Pretty()[0:5], "joined")
 }
 
 func (s *stream) writeStream() {
+	defer s.streamLost()
+
 	for {
 		event := <-s.Channel
 		raw, err := msgpack.Marshal(event.Message)
@@ -45,8 +49,6 @@ func (s *stream) writeStream() {
 		s.stream.Write([]byte{byte(0)})
 		s.stream.Write(raw)
 		s.stream.Write([]byte{byte(0)})
-
-		fmt.Printf("Sent %d bytes: %x\n", len(raw), raw)
 	}
 }
 
@@ -75,22 +77,24 @@ func (s *stream) readStream(subscriptions *Subscriptions) {
 	for {
 		name, err := s.readValue()
 		if err != nil {
+			if err.Error() == "stream reset" {
+				break
+			}
 			continue
 		}
 
 		raw, err := s.readValue()
 		if err != nil {
+			if err.Error() == "stream reset" {
+				break
+			}
 			continue
 		}
-
-		fmt.Printf("Received %d bytes: %x\n", len(raw), raw)
-
-		fmt.Println("Received", string(name))
 
 		subscriptions.Handle(string(name), raw)
 	}
 }
 
 func (s *stream) streamLost() {
-	fmt.Println(s.stream.Conn().RemotePeer().Pretty()[0:5], "disappeared")
+	fmt.Println(s.stream.Conn().RemotePeer().Pretty()[0:5], "left")
 }

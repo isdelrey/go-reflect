@@ -25,9 +25,14 @@ type Peer struct {
 	peerChan      chan peer.AddrInfo
 	Subscriptions *Subscriptions
 	Streams       *Streams
+	key           string
 }
 
-func AutoNewPeer() *Peer {
+type Options struct {
+	Key string
+}
+
+func AutoNewPeer(options Options) *Peer {
 	// Select available port
 	port := 8000
 	for {
@@ -38,7 +43,7 @@ func AutoNewPeer() *Peer {
 		port++
 	}
 
-	peer := NewPeer(port)
+	peer := NewPeer(port, options.Key)
 	fmt.Println("Running on port", port, "as", peer.host.ID().Pretty()[0:5])
 
 	peer.peerChan = mdns.Initiate(peer.ctx, peer.host, "_host-discovery")
@@ -78,7 +83,7 @@ func (p *Peer) awaitPeers() {
 	}
 }
 
-func NewPeer(port int) *Peer {
+func NewPeer(port int, key string) *Peer {
 	ctx, _ := context.WithCancel(context.Background())
 	hma, _ := ma.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", port))
 
@@ -104,6 +109,7 @@ func NewPeer(port int) *Peer {
 		peerChan:      make(chan peer.AddrInfo),
 		Subscriptions: &subscriptions,
 		Streams:       &streams,
+		key:           key,
 	}
 
 	peer.host.SetStreamHandler(protocol.ID("/reflect/1.0.0"), peer.newIncomingStream)
@@ -112,22 +118,22 @@ func NewPeer(port int) *Peer {
 }
 
 func (p *Peer) newOutgoingStream(stream network.Stream) {
-	stream.Write([]byte("hello"))
+	stream.Write([]byte(p.key))
 
-	fmt.Println("Said hello to", stream.Conn().RemotePeer().Pretty()[0:5])
+	fmt.Println("Sent key ->", stream.Conn().RemotePeer().Pretty()[0:5])
 
 	p.Streams.New(stream)
 }
 
 func (p *Peer) newIncomingStream(stream network.Stream) {
-	buffer := make([]byte, 5)
+	buffer := make([]byte, len(p.key))
 	stream.Read(buffer)
 
-	if string(buffer) != "hello" {
+	if string(buffer) != p.key {
 		stream.Close()
 	}
 
-	fmt.Println(stream.Conn().RemotePeer().Pretty()[0:5] + " said hello")
+	fmt.Println("Received key <-", stream.Conn().RemotePeer().Pretty()[0:5])
 
 	p.Streams.New(stream)
 }

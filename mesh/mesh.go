@@ -9,8 +9,14 @@ type Mesh struct {
 	Peer *peer.Peer
 }
 
-func New() *Mesh {
-	peer := peer.AutoNewPeer()
+type Options struct {
+	Key string
+}
+
+func New(opts Options) *Mesh {
+	peer := peer.AutoNewPeer(peer.Options{
+		Key: opts.Key,
+	})
 
 	return &Mesh{
 		peer,
