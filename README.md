@@ -1,6 +1,6 @@
 ### 🐙 Reflect for Go
 
-Reflect is an easy-to-use encrypted p2p pub/sub system with peer auto-discovery.
+**Reflect is an easy-to-use encrypted p2p pub/sub system with peer auto-discovery.**
 
 #### Use case
 
