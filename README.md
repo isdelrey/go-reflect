@@ -71,12 +71,12 @@ func main() {
 	s := store.New(store.Options{
 		/* A secret key is exchanged when the connection is established to verify that the other peer can join the mesh */
 		Key: "SECRET_KEY",
-    })
+    	})
     
-    s.Set("name", "Ivo")
+   	s.Set("name", "Ivo")
 
-    name := s.Get("name")
-    fmt.Println(name)
+   	name := s.Get("name")
+    	fmt.Println(name)
 }
 ```
 
@@ -100,7 +100,7 @@ func main() {
 		Key: "SECRET_KEY",
 	})
 
-    /* Create a random number generator: */
+    	/* Create a random number generator: */
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	n := strconv.Itoa(r.Intn(100))
