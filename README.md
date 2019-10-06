@@ -52,9 +52,7 @@ func main() {
 It's as easy as to call `mesh.New`. This function returns a mesh object with 4 properties:
 
 - `Subscribe` binds a handler to an event
-- `Broadcast` sends a message to all the instances in the same local network
-- `SubscriptionChannel` returns a channel that receives events with the specified name
-- `BroadcastChannel` returns a channel that sends all messages it received under the event name specified
+- `Broadcast` sends a message to all the instances in the same local networ
 
 
 #### License

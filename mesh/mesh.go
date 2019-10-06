@@ -1,7 +1,11 @@
 package mesh
 
 import (
+	"errors"
+	"time"
+
 	"github.com/ivosequeros/reflect/event"
+	"github.com/ivosequeros/reflect/message"
 	"github.com/ivosequeros/reflect/peer"
 )
 
@@ -23,7 +27,7 @@ func New(opts Options) *Mesh {
 	}
 }
 
-func (m *Mesh) Broadcast(Name string, Message interface{}) {
+func (m *Mesh) Broadcast(Name string, Message message.Message) {
 	for _, stream := range m.Peer.Streams.List {
 		stream.Channel <- event.Event{
 			Name,
@@ -32,29 +36,24 @@ func (m *Mesh) Broadcast(Name string, Message interface{}) {
 	}
 }
 
-func (m *Mesh) Subscribe(name string, handler func(message map[string]interface{})) {
-	m.Peer.Subscriptions.Add(name, handler)
-}
-
-func (m *Mesh) SubscriptionChannel(name string) chan map[string]interface{} {
-	channel := make(chan map[string]interface{})
-
-	m.Peer.Subscriptions.Add(name, func(message map[string]interface{}) {
-		channel <- message
-	})
-
-	return channel
-}
-
-func (m *Mesh) BroadcastChannel(name string) chan map[string]interface{} {
-	channel := make(chan map[string]interface{})
-
-	go func() {
-		for {
-			message := <-channel
-			m.Broadcast(name, message)
+func (m *Mesh) Push(PeerId string, Name string, Message message.Message) error {
+	for _, stream := range m.Peer.Streams.List {
+		if stream.PeerId == PeerId {
+			stream.Channel <- event.Event{
+				Name,
+				Message,
+			}
+			break
 		}
-	}()
+		return errors.New("peer not found")
+	}
+	return nil
+}
 
-	return channel
+func (m *Mesh) Subscribe(name string, handler func(message message.Message)) time.Time {
+	return m.Peer.Subscriptions.Add(name, handler)
+}
+
+func (m *Mesh) Unsubscribe(id time.Time) {
+	m.Peer.Subscriptions.Remove(id)
 }

@@ -2,31 +2,30 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+	"strconv"
 	"time"
 
-	"github.com/ivosequeros/reflect/mesh"
+	"github.com/ivosequeros/reflect/store"
 )
-
-type message map[string]interface{}
 
 func main() {
 	/* Create mesh: */
-	m := mesh.New(mesh.Options{
+	s := store.New(store.Options{
 		/* A secret key is exchanged when the connection is established to verify that the other peer can join the mesh */
 		Key: "SECRET_KEY",
 	})
 
-	/* Subscribe to a test event: */
-	m.Subscribe("test", func(message map[string]interface{}) {
-		fmt.Println("Content:", message["value"])
-	})
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	time.Sleep(1 * time.Second)
+	n := strconv.Itoa(r.Intn(100))
+	s.Set("Number", n)
+	fmt.Println("Generated", n)
 
-	/* Broadcast test event: */
-	m.Broadcast("test", message{
-		"value": "hello",
-	})
+	for {
+		fmt.Println("Read", s.Get("Number"))
+		time.Sleep(time.Second * 2)
+	}
 
 	/* Keep app running: */
 	select {}

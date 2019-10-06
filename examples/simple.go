@@ -1,15 +1,14 @@
-package main
+package examples
 
 import (
 	"fmt"
 	"time"
 
 	"github.com/ivosequeros/reflect/mesh"
+	"github.com/ivosequeros/reflect/message"
 )
 
-type message map[string]interface{}
-
-func main() {
+func Run() {
 	/* Create mesh: */
 	m := mesh.New(mesh.Options{
 		/* A secret key is exchanged when the connection is established to verify that the other peer can join the mesh */
@@ -17,14 +16,14 @@ func main() {
 	})
 
 	/* Subscribe to a test event: */
-	m.Subscribe("test", func(message map[string]interface{}) {
+	m.Subscribe("test", func(message message.Message) {
 		fmt.Println("Content:", message["value"])
 	})
 
 	time.Sleep(1 * time.Second)
 
 	/* Broadcast test event: */
-	m.Broadcast("test", message{
+	m.Broadcast("test", message.Message{
 		"value": "hello",
 	})
 
